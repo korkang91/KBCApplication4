@@ -1,7 +1,9 @@
 package com.kangbc.kbcapplication4;
 
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -10,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -53,6 +56,7 @@ import retrofit2.Retrofit;
 import static android.R.attr.path;
 
 public class MainActivity extends AppCompatActivity {
+    private BackPressCloseHandler backPressCloseHandler;    //뒤로가기 클래스
 
     @Bind(R.id.tem)
     TextView tem;
@@ -144,18 +148,23 @@ public class MainActivity extends AppCompatActivity {
 
         NaverApiInterface service = client.create(NaverApiInterface.class);
 
-//
         File sdCard = Environment.getExternalStorageDirectory();
-        File dir = new File (sdCard.getAbsolutePath() + "/camtest");
+        File dir = new File (sdCard.getAbsolutePath() + "/DCIM/Facecheck");
         String fileName = "Test1.jpg";
+
+        File[] listFiles = (new File(sdCard.getAbsolutePath()+"/DCIM/Facecheck/").listFiles());
+        int length = listFiles.length-1;
+
+        if(listFiles[length].getName().endsWith(".jpg") || listFiles[length].getName().endsWith(".bmp")) {
+            fileName = listFiles[length].getName();
+        }
+
+        Log.e(TAG, "getNaverJsonBtn: "+fileName);
+
         File file = new File(dir, fileName);
-
         RequestBody reBody = RequestBody.create(MediaType.parse("image/jpeg"), file);  // ok
-
         MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), reBody);
-
-        Call<NaverRepo> call = service.naverRepo4(clientId,clientSecret,body);
-
+        Call<NaverRepo> call = service.naverRepo(clientId,clientSecret,body);
         call.enqueue(new Callback<NaverRepo>() {
             @Override
             public void onResponse(Call<NaverRepo> call, Response<NaverRepo> response) {
@@ -164,25 +173,20 @@ public class MainActivity extends AppCompatActivity {
                     NaverRepo naverRepo = response.body();
 
                     if(naverRepo.getInfo().getFacecount()!=0){ //닮은꼴 존재
-
+                        for(int i=0;i<naverRepo.getInfo().getFacecount();i++){
+                            Log.e(TAG, "닮은사람"+i+" : "+naverRepo.getFaces()[i].getCelebrity().getValue()+" "+naverRepo.getFaces()[i].getCelebrity().getConfidence());
+                        }
+                        tem.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getInfo().getFacecount()));
+                        spd.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
+                        crdlat.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
+                        crdlon.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+naverRepo.getFaces()[0].getCelebrity().getConfidence()*100+"%"));
+//                        basest.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[1].getCelebrity().getValue()+" "+naverRepo.getFaces()[1].getCelebrity().getConfidence()));
+                        weather.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getFaces().length));
                     }else{ //닮은꼴 미존재
-
+                        tem.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getInfo().getFacecount()));
+                        spd.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
+                        crdlat.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
                     }
-                    tem.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getInfo().getFacecount()));
-                    spd.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
-                    crdlat.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
-                    crdlon.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+naverRepo.getFaces()[0].getCelebrity().getConfidence()));
-                    basest.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[1].getCelebrity().getValue()+" "+naverRepo.getFaces()[1].getCelebrity().getConfidence()));
-                    weather.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getFaces().length));
-
-//                    Log.e(TAG, "onResponse: "+ String.valueOf(naverRepo.getInfo().getFacecount()));     //null -> 2
-//                    Log.e(TAG, "onResponse : response.code = "+response.code());                        //200
-//                    Log.e(TAG, "onResponse : response.message = "+response.message().toString());       //OK
-//                    Log.e(TAG, "onResponse : response.headers =\n"+response.headers().toString());
-//                    Log.e(TAG, "onResponse : response.raw = "+response.raw().toString());               //Response{protocol=http/1.1, code=200, message=OK, url=https://openapi.naver.com/v1/vision/celebrity}
-//                    Log.e(TAG, "onResponse : response.toString = "+response.toString());
-//                    Log.e(TAG, "onResponse : response = "+response);
-
                     progressDialog.dismiss();
                 } else {
                     Log.e(TAG, "onResponse: !isSuccessful");
@@ -190,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "onResponse else : response.message = "+response.message().toString());
                     Log.e(TAG, "onResponse else : response.headers =\n"+response.headers().toString());
                     Log.e(TAG, "onResponse else : response.raw = "+response.raw().toString());
-//                    Log.e(TAG, "onResponse else : 5   \n"+response.body().toString());
                     progressDialog.dismiss();
                 }
             }
@@ -202,11 +205,24 @@ public class MainActivity extends AppCompatActivity {
                 toast.show();
             }
         });
-
-
     }
 
     public void getCameraBtn(View v){
+        Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
+        startActivity(intent);
+    }
+    @OnClick(R.id.contentProviderBtn)
+    public void contentProviderBtn(View v){
+//        ContentResolver cr = getContentResolver();
+//        Cursor cursor = cr.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,null);
+//        int nameidx = cursor.getColumnIndex(ContactsContract.Contacts.PHONETIC_NAME);
+//        Log.e(TAG, "contentProviderBtn: " + nameidx);
+
+        Intent intent = new Intent(getApplicationContext(), ImageList.class);
+        startActivity(intent);
+    }
+
+    public void cropBtn(View v){
         Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
         startActivity(intent);
     }
@@ -216,5 +232,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        backPressCloseHandler = new BackPressCloseHandler(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        backPressCloseHandler.onBackPressed();
     }
 }

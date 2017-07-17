@@ -125,13 +125,32 @@
         android:layout_above="@+id/crdlon" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="getCamera"
-        android:id="@+id/getCameraBtn"
-        android:onClick="getCameraBtn"
-        android:layout_alignBaseline="@+id/basest"
-        android:layout_alignBottom="@+id/basest"
-        android:layout_alignParentEnd="true" />
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="getCamera"
+    android:id="@+id/getCameraBtn"
+    android:onClick="getCameraBtn"
+    android:layout_alignBaseline="@+id/basest"
+    android:layout_alignBottom="@+id/basest"
+    android:layout_alignParentEnd="true" />
+
+    <Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="ContentProvider"
+    android:id="@+id/contentProviderBtn"
+    android:onClick="contentProviderBtn"
+    android:layout_below="@+id/weather"
+    android:layout_toEndOf="@+id/lat" />
+
+    <Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="cropBtn"
+    android:id="@+id/cropBtn"
+    android:onClick="cropBtn"
+    android:layout_below="@+id/contentProviderBtn"
+    android:layout_alignParentEnd="true"
+    android:layout_marginTop="12dp" />
 
 </RelativeLayout>

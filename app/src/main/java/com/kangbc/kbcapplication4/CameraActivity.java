@@ -52,6 +52,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private final static int PERMISSIONS_REQUEST_CODE = 100;
     private final static int CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private final static int CAMERA_FACING_FRONT = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private AppCompatActivity mActivity;
 
 
@@ -85,19 +86,9 @@ public class CameraActivity extends AppCompatActivity {
     public void startCamera() {
         if ( preview == null ) {
             preview = new Preview(this, (SurfaceView) findViewById(R.id.surfaceView));
-            preview.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
-                    LayoutParams.MATCH_PARENT));
+            preview.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             ((FrameLayout) findViewById(R.id.layout)).addView(preview);
             preview.setKeepScreenOn(true);
-
-            /* 프리뷰 화면 눌렀을 때  사진을 찍음
-            preview.setOnClickListener(new OnClickListener() {
-
-                @Override
-                public void onClick(View arg0) {
-                    camera.takePicture(shutterCallback, rawCallback, jpegCallback);
-                }
-            });*/
         }
 
         preview.setCamera(null);
@@ -109,11 +100,10 @@ public class CameraActivity extends AppCompatActivity {
         int numCams = Camera.getNumberOfCameras();
         if (numCams > 0) {
             try {
-
-                camera = Camera.open(CAMERA_FACING);
-                camera.setDisplayOrientation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
+                camera = Camera.open(CAMERA_FACING_FRONT);
+                camera.setDisplayOrientation(setCameraDisplayOrientation(this, CAMERA_FACING_FRONT, camera));
                 Camera.Parameters params = camera.getParameters();
-                params.setRotation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
+                params.setRotation(setCameraDisplayOrientation(this, CAMERA_FACING_FRONT, camera));
                 camera.startPreview();
 
             } catch (RuntimeException ex) {
@@ -134,7 +124,6 @@ public class CameraActivity extends AppCompatActivity {
 
         //상태바 없애기
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_camera);
@@ -221,8 +210,9 @@ public class CameraActivity extends AppCompatActivity {
             //이미지의 너비와 높이 결정
             int w = camera.getParameters().getPictureSize().width;
             int h = camera.getParameters().getPictureSize().height;
+            Log.e(TAG, "onPictureTaken: " + w + "  " + h);
 
-            int orientation = setCameraDisplayOrientation(CameraActivity.this, CAMERA_FACING, camera);
+            int orientation = setCameraDisplayOrientation(CameraActivity.this, CAMERA_FACING_FRONT, camera);
 
             //byte array를 bitmap으로 변환
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -230,7 +220,7 @@ public class CameraActivity extends AppCompatActivity {
             Bitmap bitmap = BitmapFactory.decodeByteArray( data, 0, data.length, options);
             //이미지를 디바이스 방향으로 회전
             Matrix matrix = new Matrix();
-            matrix.postRotate(orientation);
+            matrix.postRotate(-orientation);
             bitmap =  Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);
 
             //bitmap을 byte array로 변환
@@ -242,6 +232,9 @@ public class CameraActivity extends AppCompatActivity {
             new SaveImageTask().execute(currentData);
             resetCam();
             Log.d(TAG, "onPictureTaken - jpeg");
+
+            Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
+            startActivity(intent);
         }
     };
 
@@ -254,11 +247,11 @@ public class CameraActivity extends AppCompatActivity {
             // Write to SD Card
             try {
                 File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File (sdCard.getAbsolutePath() + "/camtest");
+                File dir = new File (sdCard.getAbsolutePath() + "/DCIM/Facecheck");
                 dir.mkdirs();
 
-//                String fileName = String.format("%d.jpg", System.currentTimeMillis());
-                String fileName = "Test1.jpg";
+                String fileName = String.format("%d.jpg", System.currentTimeMillis());
+//                String fileName = "Test1.jpg";
                 File outFile = new File(dir, fileName);
 
                 outStream = new FileOutputStream(outFile);
@@ -284,6 +277,7 @@ public class CameraActivity extends AppCompatActivity {
         android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
         android.hardware.Camera.getCameraInfo(cameraId, info);
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        Log.e(TAG, "setCameraDisplayOrientation: rotation  " + rotation);
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0: degrees = 0; break;
@@ -291,15 +285,18 @@ public class CameraActivity extends AppCompatActivity {
             case Surface.ROTATION_180: degrees = 180; break;
             case Surface.ROTATION_270: degrees = 270; break;
         }
-
+        Log.e(TAG, "setCameraDisplayOrientation: degrees  " + degrees);                     //0
+        Log.e(TAG, "setCameraDisplayOrientation: info.orientation  " + info.orientation);   //270
         int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+        if (info.facing == CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
             result = (360 - result) % 360;  // compensate the mirror
+            Log.e(TAG, "setCameraDisplayOrientation: if " + result);            //90
         } else {  // back-facing
             result = (info.orientation - degrees + 360) % 360;
+            Log.e(TAG, "setCameraDisplayOrientation: else  " + result);
         }
-
+        Log.e(TAG, "setCameraDisplayOrientation: result   "+ result);                       //90
         return result;
     }
 

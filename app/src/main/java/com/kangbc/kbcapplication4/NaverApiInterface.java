@@ -15,29 +15,16 @@ import retrofit2.http.Part;
  */
 
 public interface NaverApiInterface {
+
     @Multipart
     @POST("/v1/vision/celebrity")
     Call<NaverRepo> naverRepo(@Header("X-Naver-Client-Id") String id
-                            , @Header("X-Naver-Client-Secret") String secret
-                            , @Part("images") RequestBody file);
-
-    @Multipart
-    @POST("/v1/vision/celebrity")
-    Call<NaverRepo> naverRepo2(@Header("X-Naver-Client-Id") String id
-                             , @Header("X-Naver-Client-Secret") String secret
-                             , @Part("name=\"image\";") RequestBody file); //form-data; name="image"; filename="t1.jpg"
-    @Multipart
-    @POST("/v1/vision/celebrity")
-    Call<NaverRepo> naverRepo3(@Header("X-Naver-Client-Id") String id
-                              ,@Header("X-Naver-Client-Secret") String secret
-                              ,@Part("images") RequestBody file);
-
-
-    @Multipart
-    @POST("/v1/vision/celebrity")
-    Call<NaverRepo> naverRepo4(@Header("X-Naver-Client-Id") String id
                               ,@Header("X-Naver-Client-Secret") String secret
                               ,@Part MultipartBody.Part file);
 
-
+    @Multipart
+    @POST("/v1/vision/face")
+    Call<NaverRepo2> naverRepo2(@Header("X-Naver-Client-Id") String id
+            ,@Header("X-Naver-Client-Secret") String secret
+            ,@Part MultipartBody.Part file);
 }
