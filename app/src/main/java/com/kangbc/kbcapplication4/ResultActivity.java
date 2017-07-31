@@ -161,13 +161,13 @@ public class ResultActivity extends AppCompatActivity {
         });
 
         //얼굴감지
-        Call<NaverRepo2> call2 = service.naverRepo2(clientId,clientSecret,body);
-        call2.enqueue(new Callback<NaverRepo2>() {
+        Call<NaverRepo> call2 = service.naverRepo2(clientId,clientSecret,body);
+        call2.enqueue(new Callback<NaverRepo>() {
             @Override
-            public void onResponse(Call<NaverRepo2> call, Response<NaverRepo2> response) {
+            public void onResponse(Call<NaverRepo> call, Response<NaverRepo> response) {
                 if (response.isSuccessful()) {
                     Log.e(TAG, "onResponse: isSuccessful");
-                    NaverRepo2 naverRepo2 = response.body();
+                    NaverRepo naverRepo2 = response.body();
 
                     if(naverRepo2.getInfo().getFacecount()!=0){ //닮은꼴 존재
 //                        for(int i=0;i<naverRepo2.getInfo().getFacecount();i++){
@@ -198,7 +198,7 @@ public class ResultActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<NaverRepo2> call, Throwable t) {
+            public void onFailure(Call<NaverRepo> call, Throwable t) {
                 progressDialog.dismiss();
                 Toast toast = Toast.makeText(ResultActivity.this, "잘못 입력 하셨습니다.", Toast.LENGTH_SHORT);
                 toast.show();
