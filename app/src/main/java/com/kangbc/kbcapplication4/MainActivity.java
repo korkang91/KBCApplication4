@@ -168,6 +168,10 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<NaverRepo>() {
             @Override
             public void onResponse(Call<NaverRepo> call, Response<NaverRepo> response) {
+                Log.e(TAG, "onResponse: " + response.headers() );
+                Log.e(TAG, "onResponse: " + response.code() );
+                Log.e(TAG, "onResponse: " + response.message() );
+                Log.e(TAG, "onResponse: " + response.errorBody() );
                 if (response.isSuccessful()) {
                     Log.e(TAG, "onResponse: isSuccessful");
                     NaverRepo naverRepo = response.body();

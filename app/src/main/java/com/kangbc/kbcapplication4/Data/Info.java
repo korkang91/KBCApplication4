@@ -15,4 +15,17 @@ public class Info {
     public Size getSize() {
         return size;
     }
+
+    public class Size {
+        Integer width;
+        Integer height;
+
+        public Integer getHeight() {
+            return height;
+        }
+
+        public Integer getWidth() {
+            return width;
+        }
+    }
 }

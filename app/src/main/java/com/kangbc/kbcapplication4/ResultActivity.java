@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Arrays;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -36,10 +37,10 @@ public class ResultActivity extends AppCompatActivity {
 
     @Bind(R.id.name)
     TextView name;
-    @Bind(R.id.height)
-    TextView height;
-    @Bind(R.id.width)
-    TextView width;
+//    @Bind(R.id.height)
+//    TextView height;
+//    @Bind(R.id.width)
+//    TextView width;
     @Bind(R.id.percent)
     TextView percent;
     @Bind(R.id.count)
@@ -94,10 +95,11 @@ public class ResultActivity extends AppCompatActivity {
         String fileName = "Test1.jpg";
 
         File[] listFiles = (new File(sdCard.getAbsolutePath()+"/DCIM/Facecheck/").listFiles());
+        Arrays.sort(listFiles);
         int length = listFiles.length-1;
 
         for(int i=0;i<=length;i++){
-            Log.e(TAG, "naverResult: for 안" + listFiles[i].getName());
+            Log.e(TAG, "naverResult: for 안 " + listFiles[i].getName());
         }
 
         if(listFiles[length].getName().endsWith(".jpg") || listFiles[length].getName().endsWith(".bmp")) {
@@ -108,13 +110,24 @@ public class ResultActivity extends AppCompatActivity {
         Log.e(TAG, "getNaverJsonBtn: "+fileName);
 
         File file = new File(dir, fileName);
+//
+//        BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inSampleSize = 4;
+//        Bitmap src = BitmapFactory.decodeFile("/sdcard/image.jpg", options);
+//        Bitmap resized = Bitmap.createScaledBitmap(src, dstWidth, dstHeight, true);
 
         /** 완성된 이미지 보여주기  */
+
+
         BitmapFactory.Options bfo = new BitmapFactory.Options();
         bfo.inSampleSize = 2;
         ImageView iv = (ImageView)findViewById(R.id.imageView);
         Bitmap bm = BitmapFactory.decodeFile(sdCard.getAbsolutePath() + "/DCIM/Facecheck/"+fileName, bfo);
-        Bitmap resized = Bitmap.createScaledBitmap(bm, 320, 460, true);
+        int bmHeight=bm.getHeight();
+        int bmWidth=bm.getWidth();
+        Log.e(TAG, "naverResult: " + bmHeight + "  " + bmWidth );
+
+        Bitmap resized = Bitmap.createScaledBitmap(bm, 364, bmHeight/(bmWidth/364), true);
         iv.setImageBitmap(resized);
 
         RequestBody reBody = RequestBody.create(MediaType.parse("image/jpeg"), file);  // ok
@@ -132,14 +145,18 @@ public class ResultActivity extends AppCompatActivity {
                             Log.e(TAG, "닮은사람"+i+" : "+naverRepo.getFaces()[i].getCelebrity().getValue()+" "+naverRepo.getFaces()[i].getCelebrity().getConfidence());
                         }
 //                        name.setText(String.valueOf("getFacecount : "+naverRepo.getInfo().getFacecount()));
-                        height.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
-                        width.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
+//                        height.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
+//                        width.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
                         percent.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+naverRepo.getFaces()[0].getCelebrity().getConfidence()*100+"%"));
-                        count.setText(String.valueOf("getFaces().length : "+naverRepo.getFaces().length));
+//                        count.setText(String.valueOf("getFaces().length : "+naverRepo.getFaces().length));
+                        for(int i=0;i<naverRepo.getInfo().getFacecount();i++){
+                            count.append(naverRepo.getFaces()[i].getCelebrity().getValue()+" ");
+                            Log.e(TAG, "닮은사람"+i+" : "+naverRepo.getFaces()[i].getCelebrity().getValue()+" "+naverRepo.getFaces()[i].getCelebrity().getConfidence());
+                        }
                     }else{ //닮은꼴 미존재
                         count.setText(String.valueOf("닮은 사람 수 : "+naverRepo.getInfo().getFacecount()));
-                        height.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
-                        width.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
+//                        height.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
+//                        width.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
                     }
                     progressDialog.dismiss();
                 } else {

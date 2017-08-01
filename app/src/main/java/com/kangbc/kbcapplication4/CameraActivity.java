@@ -37,12 +37,15 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = "CameraActivity";
@@ -51,7 +54,8 @@ public class CameraActivity extends AppCompatActivity {
     Context ctx;
 
     private final static int PERMISSIONS_REQUEST_CODE = 100;
-    private final static int CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private static int CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private final static int CAMERA_FACING_BACK = Camera.CameraInfo.CAMERA_FACING_BACK;
     private final static int CAMERA_FACING_FRONT = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private AppCompatActivity mActivity;
 
@@ -87,8 +91,18 @@ public class CameraActivity extends AppCompatActivity {
         if ( preview == null ) {
             preview = new Preview(this, (SurfaceView) findViewById(R.id.surfaceView));
             preview.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            preview.setFocusable(true);
+            preview.setFocusableInTouchMode(true);
             ((FrameLayout) findViewById(R.id.layout)).addView(preview);
             preview.setKeepScreenOn(true);
+
+            // 프리뷰 화면 눌렀을 때  사진을 찍음
+//            preview.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View arg0) {
+//                    camera.takePicture(shutterCallback, rawCallback, jpegCallback);
+//                }
+//            });
         }
 
         preview.setCamera(null);
@@ -100,10 +114,14 @@ public class CameraActivity extends AppCompatActivity {
         int numCams = Camera.getNumberOfCameras();
         if (numCams > 0) {
             try {
-                camera = Camera.open(CAMERA_FACING_FRONT);
-                camera.setDisplayOrientation(setCameraDisplayOrientation(this, CAMERA_FACING_FRONT, camera));
+                camera = Camera.open(CAMERA_FACING);
+                camera.setDisplayOrientation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
                 Camera.Parameters params = camera.getParameters();
-                params.setRotation(setCameraDisplayOrientation(this, CAMERA_FACING_FRONT, camera));
+                params.setRotation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
+//                params.setFocusMode(params.FOCUS_MODE_AUTO);
+//                params.setFocusMode(params.FOCUS_MODE_CONTINUOUS_PICTURE);
+//                params.setFocusMode(params.FOCUS_MODE_MACRO);
+//                camera.setParameters(params);
                 camera.startPreview();
 
             } catch (RuntimeException ex) {
@@ -133,6 +151,19 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 camera.takePicture(shutterCallback, rawCallback, jpegCallback);
+            }
+        });
+        ToggleButton toggleButton = (ToggleButton)findViewById(R.id.toggleButton);
+        toggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(CAMERA_FACING == CAMERA_FACING_FRONT){
+                    CAMERA_FACING = CAMERA_FACING_BACK;
+                    startCamera();
+                } else {
+                    CAMERA_FACING = CAMERA_FACING_FRONT;
+                    startCamera();
+                }
             }
         });
 
@@ -212,15 +243,18 @@ public class CameraActivity extends AppCompatActivity {
             int h = camera.getParameters().getPictureSize().height;
             Log.e(TAG, "onPictureTaken: " + w + "  " + h);
 
-            int orientation = setCameraDisplayOrientation(CameraActivity.this, CAMERA_FACING_FRONT, camera);
-
             //byte array를 bitmap으로 변환
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
             Bitmap bitmap = BitmapFactory.decodeByteArray( data, 0, data.length, options);
             //이미지를 디바이스 방향으로 회전
             Matrix matrix = new Matrix();
-            matrix.postRotate(-orientation);
+            if(CAMERA_FACING == CAMERA_FACING_FRONT) {
+                matrix.preScale(-1.0f, 1.0f);
+                matrix.postRotate(90.f);
+            } else {
+                matrix.postRotate(90.f);
+            }
             bitmap =  Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);
 
             //bitmap을 byte array로 변환
@@ -250,8 +284,15 @@ public class CameraActivity extends AppCompatActivity {
                 File dir = new File (sdCard.getAbsolutePath() + "/DCIM/Facecheck");
                 dir.mkdirs();
 
-                String fileName = String.format("%d.jpg", System.currentTimeMillis());
-//                String fileName = "Test1.jpg";
+                long now = System.currentTimeMillis();
+                Date date = new Date(now);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_hhmmss");
+                String getTime = sdf.format(date);
+//                Log.e(TAG, "FileName Sample : " + getTime);
+
+//                String fileName = String.format("%d.jpg", System.currentTimeMillis());
+                String fileName = getTime+".jpg";
+                Log.e(TAG, "doInBackground: " + fileName);
                 File outFile = new File(dir, fileName);
 
                 outStream = new FileOutputStream(outFile);
