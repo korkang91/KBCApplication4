@@ -110,22 +110,15 @@ public class ResultActivity extends AppCompatActivity {
         Log.e(TAG, "getNaverJsonBtn: "+fileName);
 
         File file = new File(dir, fileName);
-//
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inSampleSize = 4;
-//        Bitmap src = BitmapFactory.decodeFile("/sdcard/image.jpg", options);
-//        Bitmap resized = Bitmap.createScaledBitmap(src, dstWidth, dstHeight, true);
 
         /** 완성된 이미지 보여주기  */
-
-
         BitmapFactory.Options bfo = new BitmapFactory.Options();
         bfo.inSampleSize = 2;
         ImageView iv = (ImageView)findViewById(R.id.imageView);
         Bitmap bm = BitmapFactory.decodeFile(sdCard.getAbsolutePath() + "/DCIM/Facecheck/"+fileName, bfo);
         int bmHeight=bm.getHeight();
         int bmWidth=bm.getWidth();
-        Log.e(TAG, "naverResult: " + bmHeight + "  " + bmWidth );
+//        Log.e(TAG, "naverResult: " + bmHeight + "  " + bmWidth );
 
         Bitmap resized = Bitmap.createScaledBitmap(bm, 364, bmHeight/(bmWidth/364), true);
         iv.setImageBitmap(resized);
@@ -141,13 +134,13 @@ public class ResultActivity extends AppCompatActivity {
                     NaverRepo naverRepo = response.body();
 
                     if(naverRepo.getInfo().getFacecount()!=0){ //닮은꼴 존재
-                        for(int i=0;i<naverRepo.getInfo().getFacecount();i++){
-                            Log.e(TAG, "닮은사람"+i+" : "+naverRepo.getFaces()[i].getCelebrity().getValue()+" "+naverRepo.getFaces()[i].getCelebrity().getConfidence());
-                        }
+//                        for(int i=0;i<naverRepo.getInfo().getFacecount();i++){
+//                            Log.e(TAG, "닮은사람"+i+" : "+naverRepo.getFaces()[i].getCelebrity().getValue()+" "+naverRepo.getFaces()[i].getCelebrity().getConfidence());
+//                        }
 //                        name.setText(String.valueOf("getFacecount : "+naverRepo.getInfo().getFacecount()));
 //                        height.setText(String.valueOf("Height : "+naverRepo.getInfo().getSize().getHeight()));
 //                        width.setText(String.valueOf("Width : "+naverRepo.getInfo().getSize().getWidth()));
-                        percent.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+naverRepo.getFaces()[0].getCelebrity().getConfidence()*100+"%"));
+                        percent.setText(String.valueOf("닮은 연예인 : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+String.format("%.2f", naverRepo.getFaces()[0].getCelebrity().getConfidence()*100)+"%"));//String.format("%.2f", nNumber
 //                        count.setText(String.valueOf("getFaces().length : "+naverRepo.getFaces().length));
                         for(int i=0;i<naverRepo.getInfo().getFacecount();i++){
                             count.append(naverRepo.getFaces()[i].getCelebrity().getValue()+" ");
@@ -192,10 +185,10 @@ public class ResultActivity extends AppCompatActivity {
 //                        }
                         Log.e(TAG, "onResponse: 닮은꼴 존재");
                         facecount.setText(String.valueOf("찾은 얼굴 개수 : "+naverRepo2.getInfo().getFacecount()));
-                        gender.setText(String.valueOf("성별 및 일치율 : "+naverRepo2.getFaces()[0].getGender().getValue() + " / " + naverRepo2.getFaces()[0].getGender().getConfidence()*100+"%"));
-                        age.setText(String.valueOf("나이 및 일치율 : "+naverRepo2.getFaces()[0].getAge().getValue() + " / " + naverRepo2.getFaces()[0].getAge().getConfidence()*100+"%"));
-                        emotion.setText(String.valueOf("감정상태 : "+naverRepo2.getFaces()[0].getEmotion().getValue()+" / "+naverRepo2.getFaces()[0].getEmotion().getConfidence()*100+"%"));
-                        pose.setText(String.valueOf("얼굴방향 : "+naverRepo2.getFaces()[0].getPose().getValue()+" / "+naverRepo2.getFaces()[0].getPose().getConfidence()*100+"%"));
+                        gender.setText(String.valueOf("성별 및 일치율 : "+naverRepo2.getFaces()[0].getGender().getValue() + " / " + String.format("%.2f", naverRepo2.getFaces()[0].getGender().getConfidence()*100)+"%"));
+                        age.setText(String.valueOf("나이 및 일치율 : "+naverRepo2.getFaces()[0].getAge().getValue() + " / " + String.format("%.2f", naverRepo2.getFaces()[0].getAge().getConfidence()*100)+"%"));
+                        emotion.setText(String.valueOf("감정상태 : "+naverRepo2.getFaces()[0].getEmotion().getValue()+" / "+String.format("%.2f", naverRepo2.getFaces()[0].getEmotion().getConfidence()*100)+"%"));
+                        pose.setText(String.valueOf("얼굴방향 : "+naverRepo2.getFaces()[0].getPose().getValue()+" / "+String.format("%.2f", naverRepo2.getFaces()[0].getPose().getConfidence()*100)+"%"));
 //                        percent.setText(String.valueOf("이름, 닮은% : "+naverRepo.getFaces()[0].getCelebrity().getValue()+" "+naverRepo.getFaces()[0].getCelebrity().getConfidence()*100+"%"));
                     }else{ //닮은꼴 미존재
                         Log.e(TAG, "onResponse: 닮은꼴 미존재");

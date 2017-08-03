@@ -118,10 +118,6 @@ public class CameraActivity extends AppCompatActivity {
                 camera.setDisplayOrientation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
                 Camera.Parameters params = camera.getParameters();
                 params.setRotation(setCameraDisplayOrientation(this, CAMERA_FACING, camera));
-//                params.setFocusMode(params.FOCUS_MODE_AUTO);
-//                params.setFocusMode(params.FOCUS_MODE_CONTINUOUS_PICTURE);
-//                params.setFocusMode(params.FOCUS_MODE_MACRO);
-//                camera.setParameters(params);
                 camera.startPreview();
 
             } catch (RuntimeException ex) {
@@ -286,7 +282,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 long now = System.currentTimeMillis();
                 Date date = new Date(now);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_hhmmss");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 String getTime = sdf.format(date);
 //                Log.e(TAG, "FileName Sample : " + getTime);
 
