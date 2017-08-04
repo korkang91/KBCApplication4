@@ -127,7 +127,7 @@
     <Button
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="getCamera"
+    android:text="네이버얼굴인식"
     android:id="@+id/getCameraBtn"
     android:onClick="getCameraBtn"
     android:layout_alignBaseline="@+id/basest"

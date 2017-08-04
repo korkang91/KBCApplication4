@@ -44,7 +44,8 @@ public class BackPressCloseHandler {
 //            if(interstitialAd != null){
 //                interstitialAd.show();
 //            }
-            activity.finish();
+//            activity.finish();
+            activity.finishAffinity();
         }
     }
 

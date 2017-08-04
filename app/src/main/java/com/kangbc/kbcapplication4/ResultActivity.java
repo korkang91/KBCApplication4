@@ -113,15 +113,16 @@ public class ResultActivity extends AppCompatActivity {
 
         /** 완성된 이미지 보여주기  */
         BitmapFactory.Options bfo = new BitmapFactory.Options();
-        bfo.inSampleSize = 2;
+        bfo.inSampleSize = 4;
         ImageView iv = (ImageView)findViewById(R.id.imageView);
         Bitmap bm = BitmapFactory.decodeFile(sdCard.getAbsolutePath() + "/DCIM/Facecheck/"+fileName, bfo);
         int bmHeight=bm.getHeight();
         int bmWidth=bm.getWidth();
-//        Log.e(TAG, "naverResult: " + bmHeight + "  " + bmWidth );
+        Log.e(TAG, "naverResult: " + bmHeight + "  " + bmWidth );
 
-        Bitmap resized = Bitmap.createScaledBitmap(bm, 364, bmHeight/(bmWidth/364), true);
+        Bitmap resized = Bitmap.createScaledBitmap(bm, bm.getWidth(), bm.getHeight(), true);
         iv.setImageBitmap(resized);
+
 
         RequestBody reBody = RequestBody.create(MediaType.parse("image/jpeg"), file);  // ok
         MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), reBody);
