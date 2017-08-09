@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "com.kangbc.kbcapplication4"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -32,6 +32,7 @@ dependencies {
     //    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta3'
     compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'gun0912.ted:tedpermission:1.0.3'
 //    compile 'com.squareup.retrofit2:converter-simplexml:retrofit:2.1.0'
     testCompile 'junit:junit:4.12'
 }

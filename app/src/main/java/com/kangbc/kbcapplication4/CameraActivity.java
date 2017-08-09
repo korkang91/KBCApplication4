@@ -284,9 +284,6 @@ public class CameraActivity extends AppCompatActivity {
                 Date date = new Date(now);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 String getTime = sdf.format(date);
-//                Log.e(TAG, "FileName Sample : " + getTime);
-
-//                String fileName = String.format("%d.jpg", System.currentTimeMillis());
                 String fileName = getTime+".jpg";
                 Log.e(TAG, "doInBackground: " + fileName);
                 File outFile = new File(dir, fileName);

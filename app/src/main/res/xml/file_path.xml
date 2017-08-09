@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths
-    android = "http://schemas.android.com/apk/res/android">
-    <files-path
-        name = "aaa"
-        path = "img/"/>
+<paths>
+    <external-path name="images" path="."/>
 </paths>
