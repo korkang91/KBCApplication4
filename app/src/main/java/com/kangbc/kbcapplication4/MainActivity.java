@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -29,6 +30,7 @@ import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int MULTIPLE_PERMISSIONS = 101;
 
     private String mCurrentPhotoPath;
+    String sendFileName;
 
     String TAG = "kbc";
     ProgressDialog progressDialog;
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "getNaverJsonBtn: "+fileName);
 
         File file = new File(dir, fileName);
-        RequestBody reBody = RequestBody.create(MediaType.parse("image/jpeg"), file);  // ok
+        RequestBody reBody = RequestBody.create(MediaType.parse("image/jpg"), file);  // ok
         MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), reBody);
         Call<NaverRepo> call = service.naverRepo(clientId,clientSecret,body);
         call.enqueue(new Callback<NaverRepo>() {
@@ -321,15 +324,28 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         String getTime = sdf.format(date);
         String imageFileName = getTime;
+        Log.e(TAG, "createImageFile: imageFileName     " + imageFileName );             //ㅇㅇㅇㅇㅇ
 
         File storageDir = new File(Environment.getExternalStorageDirectory() + "/DCIM/Facecheck/");
         if (!storageDir.exists()) {
             storageDir.mkdirs();
         }
-        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+//        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+
+        File image = new File(storageDir, imageFileName +".jpg");
+//        refreshGallery(image);
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        Log.e(TAG, "createImageFile: mCurrentPhotoPath    "  + mCurrentPhotoPath.toString() );              //ㄴㄴㄴㄴㄴㄴㄴㄴ
+
         return image;
     }
+
+    private void refreshGallery(File file) {
+        Intent mediaScanIntent = new Intent( Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        mediaScanIntent.setData(Uri.fromFile(file));
+        sendBroadcast(mediaScanIntent);
+    }
+
 
     private void goToAlbum() {
         Intent intent = new Intent(Intent.ACTION_PICK);
@@ -383,6 +399,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             photoUri = data.getData();
+            Log.e(TAG, "onActivityResult: photoUri   " + photoUri.toString());
+
             cropImage();
         } else if (requestCode == PICK_FROM_CAMERA) {
             cropImage();
@@ -393,21 +411,19 @@ public class MainActivity extends AppCompatActivity {
                         public void onScanCompleted(String path, Uri uri) {
                         }
                     });
+            Log.e(TAG, "onActivityResult: " + photoUri.getPath() );
         } else if (requestCode == CROP_FROM_CAMERA) {
             iv.setImageURI(null);
             iv.setImageURI(photoUri);
         } else if (requestCode == RESULT_FROM_CROP) {
             Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
+            intent.putExtra("filename",sendFileName);
             startActivity(intent);;
         }
     }
 
     //Android N crop image
     public void cropImage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            this.grantUriPermission("com.android.camera", photoUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setDataAndType(photoUri, "image/*");
 
@@ -422,36 +438,42 @@ public class MainActivity extends AppCompatActivity {
             return;
         } else {
             Toast.makeText(this, "용량이 큰 사진의 경우 시간이 오래 걸릴 수 있습니다.", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "cropImage: asdfasfd     " + photoUri.getPath());
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            }
-            intent.putExtra("crop", "true");
-            intent.putExtra("aspectX", 1);
-            intent.putExtra("aspectY", 1);
-            intent.putExtra("scale", true);
+
+
             File croppedFileName = null;
             try {
                 croppedFileName = createImageFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             File folder = new File(Environment.getExternalStorageDirectory() + "/DCIM/Facecheck/");
             File tempFile = new File(folder.toString(), croppedFileName.getName());
-
             photoUri = FileProvider.getUriForFile(MainActivity.this,
                     "com.kangbc.kbcapplication4.fileprovider", tempFile);
+
+            intent.putExtra("crop", "true");
+            intent.putExtra("aspectX", 1);
+            intent.putExtra("aspectY", 1);
+            intent.putExtra("scale", true);
+            intent.putExtra("return-data", false);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+            intent.putExtra("output", photoUri);
+            intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+            Log.e(TAG, "cropImage: 12122121212    " + photoUri.getPath() );
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
 
-            intent.putExtra("return-data", false);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-            intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+            //리프레시
+            this.sendBroadcast(new Intent( Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(tempFile)) );
+
+            //카메라 찍은 파일명 전달 - 갤러리에서 크랍한 이미지명 전달 실패
+            sendFileName = croppedFileName.getName();
+            Log.e(TAG, "cropImage: sendFileName     " + sendFileName );
 
             Intent i = new Intent(intent);
             ResolveInfo res = list.get(0);
@@ -462,8 +484,8 @@ public class MainActivity extends AppCompatActivity {
                 grantUriPermission(res.activityInfo.packageName, photoUri,
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
+
             i.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-//            startActivityForResult(i, CROP_FROM_CAMERA);
             startActivityForResult(i, RESULT_FROM_CROP);
         }
     }

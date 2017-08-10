@@ -111,6 +111,12 @@ public class ResultActivity extends AppCompatActivity {
 
         File file = new File(dir, fileName);
 
+        //
+        Intent intent = getIntent();
+        Log.e(TAG, "naverResult: filename     " + intent.getStringExtra("filename") );
+        fileName = intent.getStringExtra("filename");
+        //
+
         /** 완성된 이미지 보여주기  */
         BitmapFactory.Options bfo = new BitmapFactory.Options();
         bfo.inSampleSize = 4;
